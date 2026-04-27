@@ -1,5 +1,7 @@
 # MasjidOS
 
+https://youtu.be/fCgN0jHCpmk
+
 **Mosque Information System** — web app sederhana untuk jadwal shalat, hitung mundur, tampilan media, dan (opsional) livestream, dengan zona waktu default **WIB (Asia/Jakarta)**. **MasjidOS dirancang untuk dijalankan di lingkungan lokal** (PC, mini PC, atau NAS ringan di jaringan masjid): browser TV/tablet cukup membuka alamat server di jaringan yang sama — tanpa ketergantungan pada hosting cloud seperti Vercel.
 
 [English below](#masjidos)
