@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body {
+  @apply min-h-full bg-amber-50 text-black antialiased dark:bg-slate-900 dark:text-zinc-50;
+}
+
+* {
+  box-sizing: border-box;
+}
