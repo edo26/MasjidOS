@@ -4,12 +4,13 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { PageShell } from "@/components/layout/page-shell";
 import { MediaSlideshow } from "@/components/media/media-slideshow";
 import { YoutubeEmbedFrame } from "@/components/media/youtube-embed-frame";
+import { CriticalAdzanOverlay } from "@/components/prayer/critical-adzan-overlay";
 import { ClockHms } from "@/components/prayer/clock-hms";
 import { PrayerCountdown } from "@/components/prayer/prayer-countdown";
 import { PrayerTimeGrid } from "@/components/prayer/prayer-time-grid";
 import { NeoCard } from "@/components/neo/neo-card";
 import { SkeletonBlock } from "@/components/ui/skeleton-block";
-import { useCriticalBeep } from "@/hooks/useCriticalBeep";
+import { useCriticalBeep, useAdzanMomentBeep } from "@/hooks/useCriticalBeep";
 import { usePrayerData } from "@/hooks/usePrayerData";
 import { useMasjidStore } from "@/store/masjid-store";
 
@@ -20,8 +21,17 @@ export default function HomePage() {
   const p = usePrayerData();
   const cfg = useMasjidStore((s) => s.config);
   useCriticalBeep(cfg.adzanBeep, p.secondsLeft);
+  useAdzanMomentBeep(cfg.adzanBeep, p.secondsLeft);
+  const showCritical = !p.loading && p.urgency === "critical" && p.secondsLeft > 0;
+
   return (
     <PageShell>
+      <CriticalAdzanOverlay
+        visible={showCritical}
+        nextLabel={p.nextLabel}
+        secondsLeft={p.secondsLeft}
+        mosqueName={cfg.mosqueName}
+      />
       <SiteHeader
         title="MasjidOS"
         subtitle={`${cfg.mosqueName} · ${cfg.cityLabel} — jadwal myQuran, zona WIB.`}
@@ -33,6 +43,12 @@ export default function HomePage() {
         <div>
           {p.loading ? (
             <SkeletonBlock h="h-32" className="mb-2" />
+          ) : showCritical ? (
+            <NeoCard className="flex min-h-[8rem] items-center justify-center bg-red-100 p-4 text-center dark:bg-red-950/50">
+              <p className="text-sm font-bold">
+                Peringatan &lt; 1 menit menuju adzan — tampilan layar penuh aktif
+              </p>
+            </NeoCard>
           ) : (
             <PrayerCountdown
               nextLabel={p.nextLabel}

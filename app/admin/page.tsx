@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { SiteHeader } from "@/components/layout/site-header";
 import { PageShell } from "@/components/layout/page-shell";
 import { NeoButton } from "@/components/neo/neo-button";
 import { NeoCard } from "@/components/neo/neo-card";
-import type { MasjidConfig } from "@/types/masjidos";
+import type { MasjidConfig, UiPrayerId } from "@/types/masjidos";
 import { useMasjidStore, defaultMasjidConfig } from "@/store/masjid-store";
 import { readFileAsDataUrl } from "@/utils/read-file-data-url";
 import { ensureMasjidConfig } from "@/utils/ensure-masjid-config";
+import { ORDER, labelPrayer } from "@/utils/prayer-logic";
 
 /**
  * halaman admin: menyesuaikan JSON konfigurasi lokal (localStorage + ekspor/impor).
@@ -22,6 +23,20 @@ export default function AdminPage() {
     (it) =>
       it.type === "image" && "url" in it && it.url.startsWith("data:")
   );
+
+  const [simPrayer, setSimPrayer] = useState<UiPrayerId>("maghrib");
+  const [simDetik, setSimDetik] = useState(45);
+  const [simHideMenu, setSimHideMenu] = useState(true);
+  const simPreviewUrl = useMemo(() => {
+    const d = Math.min(59, Math.max(1, simDetik));
+    const q = new URLSearchParams({
+      simulasi: "kritis",
+      shalat: simPrayer,
+      detik: String(d),
+    });
+    if (simHideMenu) q.set("sembunyi_menu", "1");
+    return `/display?${q.toString()}`;
+  }, [simPrayer, simDetik, simHideMenu]);
 
   const applyJson = () => {
     setErr(null);
@@ -222,6 +237,78 @@ export default function AdminPage() {
             />
             Tampilkan grid jadwal shalat
           </label>
+        </NeoCard>
+        <NeoCard className="bg-orange-100 dark:bg-orange-950/30 lg:col-span-2">
+          <h2 className="text-lg font-black uppercase">
+            Simulasi &lt; 1 menit sebelum adzan
+          </h2>
+          <p className="mt-1 text-sm font-bold text-zinc-800 dark:text-zinc-200">
+            Layar penuh merah dengan <strong>lingkaran mundur</strong> (tersisa dalam satu menit
+            terakhir) dan jam digital di tengah — sama seperti di TV saat fase kritis nyata. Media /
+            slideshow tertutup overlay. Pratinjau memakai pengaturan masjid Anda; beep kritis
+            mengikuti opsi &quot;Beep jika &lt; 1 menit&quot; seperti di produksi. Saat 0: beep panjang
+            ~1,6 dtk, lalu tampilan biasa; hitungan simulasi otomatis mulai lagi (~2 dtk).
+          </p>
+          <div className="mt-3 flex flex-wrap gap-4">
+            <div>
+              <label className="block text-sm font-bold">Shalat berikutnya</label>
+              <select
+                className="mt-1 rounded-lg border-2 border-black bg-white p-2 font-bold dark:border-zinc-200 dark:bg-slate-800"
+                value={simPrayer}
+                onChange={(e) => setSimPrayer(e.target.value as UiPrayerId)}
+              >
+                {ORDER.map((id) => (
+                  <option key={id} value={id}>
+                    {labelPrayer(id)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold">Sisa detik (1–59)</label>
+              <input
+                type="number"
+                min={1}
+                max={59}
+                className="mt-1 w-24 rounded-lg border-2 border-black p-2 font-bold dark:border-zinc-200 dark:bg-slate-800"
+                value={simDetik}
+                onChange={(e) =>
+                  setSimDetik(Math.min(59, Math.max(1, parseInt(e.target.value, 10) || 45)))
+                }
+              />
+            </div>
+            <label className="mt-6 flex items-center gap-2 font-bold sm:mt-8">
+              <input
+                type="checkbox"
+                checked={simHideMenu}
+                onChange={(e) => setSimHideMenu(e.target.checked)}
+              />
+              Sembunyikan bar menu Display (lebih mirip TV)
+            </label>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <NeoButton
+              onClick={() => window.open(simPreviewUrl, "_blank", "noopener,noreferrer")}
+            >
+              Buka /display (tab baru)
+            </NeoButton>
+            <a
+              href={simPreviewUrl}
+              className="inline-flex items-center text-sm font-bold underline"
+            >
+              {simPreviewUrl}
+            </a>
+          </div>
+          <div className="mt-4">
+            <p className="mb-1 text-xs font-bold uppercase text-zinc-600 dark:text-zinc-400">
+              Pratinjau di halaman ini
+            </p>
+            <iframe
+              title="Pratinjau mode kritis sebelum adzan"
+              className="h-[min(70vh,560px)] w-full rounded-xl border-4 border-black dark:border-zinc-300"
+              src={simPreviewUrl}
+            />
+          </div>
         </NeoCard>
         <NeoCard className="bg-sky-100 dark:bg-sky-950/30 lg:col-span-2">
           <h2 className="text-lg font-black uppercase">Unggah gambar lokal</h2>

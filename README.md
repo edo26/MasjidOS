@@ -12,6 +12,12 @@ https://youtu.be/fCgN0jHCpmk
 - **Hitung mundur** ke waktu berikut, dengan status warna: tenang / normal / peringatan (&lt;5 menit) / kritis (&lt;1 menit) + animasi yang tetap hormat.
 - **Mode display / TV** — fokus hitung mundur bila tersisa waktu ≤ batas (default 10 menit), lalu kembali ke **slideshow** (gambar + video) atau **YouTube** livestream; **layar penuh** (kiosk); **marquee** teks berjalan; **grid jadwal** shalat hari ini. *RTSP* dari kamera perlu dikonversi dulu (mis. ke HLS/WebRTC/YouTube) karena browser tidak memutar RTSP mentah.
 - **Admin** — menyimpan konfigurasi ke **localStorage**; dapat mengekspor/menempel **JSON**; **unggah gambar** (data URL, batas ±1,5MB) ke playlist.
+- **Peringatan &lt;1 menit menuju adzan** — layar penuh (overlay) dengan **progress lingkaran** (60 detik terakhir), ringkasan **sisa detik & persen**, penanda **tiap 15 detik**, hitung mundur digital, dan gaya neobrutal; berlaku di **/** dan **/display**.
+- **Suara** — beep ringan tiap **15 detik** saat &lt;1 menit (opsi admin); **beep panjang ~1,6 detik** saat waktu adzan tiba; pada **simulasi**, setelah adzan tampilan **kembali normal** (~2 detik) lalu hitungan diulang.
+- **Simulasi (admin & URL)** — di **/admin**: pratinjau kritis dengan pilihan shalat, sisa detik (1–59), iframe dan tautan buka tab. URL: `/display?simulasi=kritis&shalat=maghrib&detik=45&sembunyi_menu=1` — hitungan **turun per detik**, beep mengikuti pengaturan, sama seperti produksi.
+- **Stabilitas React** — jam `ClockHms` baru mengisi setelah mount (hindari error hidrasi); Zustand **`skipHydration`** + **rehydrate** di provider agar server dan klien selaras dengan `localStorage`.
+
+Repositori sumber terbuka: [github.com/edo26/MasjidOS](https://github.com/edo26/MasjidOS).
 - **Tema terang / gelap** manual atau **otomatis menurut jam (WIB)**; **beep** opsional saat waktu kritis; **polling** jadwal yang dapat disetel (default ±45s). YouTube livestream dapat **autoplay (mute)** agar sesuai kebijakan browser.
 
 ## Tech stack
@@ -37,7 +43,7 @@ hooks/         usePrayerData, fullscreen, dsb
 services/      Klien jadwal + fetch server myQuran
 store/         Konfigurasi global
 types/         Tipe TypeScript
-utils/         Logika waktu shalat, beep, YouTube
+utils/         Logika waktu shalat, beep (ring + adzan), YouTube
 ```
 
 ## Menjalankan web app (tutorial)
@@ -68,7 +74,7 @@ Buka browser ke [http://localhost:3000](http://localhost:3000).
 | Rute        | Fungsi |
 | ----------- | ------ |
 | `/`         | Beranda |
-| `/display`  | Mode TV / kiosk |
+| `/display`  | Mode TV / kiosk (`?simulasi=kritis` untuk uji tampilan &lt;1 menit) |
 | `/admin`    | Konfigurasi (ID kota, playlist, dsb.) |
 
 ### 3. Mode produksi di jaringan lokal (disarankan untuk TV / tablet)
@@ -112,6 +118,15 @@ Ganti `<IP-mesin-server>` dengan alamat IPv4 komputer yang menjalankan `npm star
 - Deploy ke **Vercel** atau PaaS lain **bukan jalur utama** untuk MasjidOS; arsitektur ini mengutamakan **satu mesin di masjid** yang menjalankan `npm start`, sehingga data sensitif dan traffic tetap di jaringan Anda.
 - Gambar contoh memakai Unsplash; untuk produksi, simpan aset ke hosting/CDN sendiri atau file lokal sesuai kebutuhan.
 
+### Query opsional `/display` (simulasi)
+
+| Parameter         | Contoh | Keterangan |
+| ----------------- | ------ | ---------- |
+| `simulasi=kritis` | —      | Aktifkan overlay &amp; hitung mundur uji |
+| `shalat`          | `maghrib` | Salah satu: `subuh`,`dzuhur`,`ashar`,`maghrib`,`isya` |
+| `detik`           | `45`   | Nilai awal 1–59 (turun tiap detik) |
+| `sembunyi_menu=1` | —      | Sembunyikan bar header Display |
+
 ## Lisensi
 
 MIT — lihat [LICENSE](LICENSE).
@@ -125,6 +140,10 @@ Issue & PR diterima. Utamakan perubahan kecil, satu topik per PR.
 # MasjidOS (English)
 
 Open-source **mosque dashboard**: prayer schedule (Indonesia, WIB by default), live countdown, optional slideshow/YouTube, admin JSON, neubrutalism UI. **Intended to run on a local machine** (mini PC, etc.) on the mosque LAN — browsers on TVs/tablets open the server URL; **cloud deploy (e.g. Vercel) is not the primary path.** Prayer data: [myQuran](https://api.myquran.com/doc).
+
+**Newer behavior:** full-screen **critical countdown** (last 60s) with a **circular progress** ring, beeps every 15s under one minute, **long beep (~1.6s)** at adhan time, **simulation mode** via `/admin` or `/display?simulasi=kritis&...` (ticking + audio like production, then returns to normal layout). **Hydration-safe** clock and persisted config.
+
+**Repository:** [github.com/edo26/MasjidOS](https://github.com/edo26/MasjidOS)
 
 **Run locally:** `npm install` → `npm run dev` (dev) or `npm run build` then `npm start` (production). Open `http://localhost:3000`; use `/display` for kiosk, `/admin` for config. On another device on the same network, use `http://<server-ip>:3000/display`.
 

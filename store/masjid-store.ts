@@ -42,6 +42,7 @@ export const useMasjidStore = create<State>()(
     }),
     {
       name: "masjidos-config-v1",
+      skipHydration: true,
       partialize: (s) => ({ config: s.config }),
       merge: (persisted, current) => {
         const p = (persisted as { config?: MasjidConfig } | null)?.config;
